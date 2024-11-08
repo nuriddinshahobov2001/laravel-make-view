@@ -13,11 +13,6 @@
       "Zintel\\LaravelViewMaker\\": "src/"
     }
   },
-  "autoload-dev": {
-    "psr-4": {
-      "Zintel\\LaravelViewMaker\\Console\\Commands\\": "src/Console/Commands/"
-    }
-  },
   "require": {
     "php": "^7.1|^8.3"
   },
@@ -28,6 +23,6 @@
       ]
     }
   },
-  "version": "1.0.4",
+  "version": "1.0.5",
   "minimum-stability": "stable"
 }

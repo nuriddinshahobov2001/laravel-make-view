@@ -1,30 +1,32 @@
 <?php
 
-namespace Zintel\LaravelViewMaker\Providers;
-
+namespace Zintel\LaravelViewMaker;
 
 use Illuminate\Support\ServiceProvider;
 use Zintel\LaravelViewMaker\Console\Commands\MakeViewCommand;
 
-class ViewGeneratorCommandProvider extends ServiceProvider
+class LaravelViewMakerServiceProvider extends ServiceProvider
 {
     /**
      * Register services.
+     *
+     * @return void
      */
-    public function register(): void
+    public function register()
     {
-        //
+        // Регистрируем команду
+        $this->commands([
+            MakeViewCommand::class,
+        ]);
     }
 
     /**
      * Bootstrap services.
+     *
+     * @return void
      */
-    public function boot(): void
+    public function boot()
     {
-        if ($this->app->runningInConsole()) {
-            $this->commands([
-                MakeViewCommand::class
-            ]);
-        }
+        //
     }
 }

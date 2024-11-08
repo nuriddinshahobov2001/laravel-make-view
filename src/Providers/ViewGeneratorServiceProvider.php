@@ -4,7 +4,7 @@ namespace Zintel\LaravelService\Providers;
 
 
 use YourNamespace\Commands\MakeViewCommand;
-use Zintel\LaravelService\Console\Commands\MakeServiceCommand;
+use Zintel\LaravelViewMaker\Console\Commands\MakeServiceCommand;
 
 class MakeServiceCommandProvider extends ServiceProvider
 {

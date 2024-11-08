@@ -1,11 +1,11 @@
 <?php
 
-namespace Zintel\LaravelService\Console\Commands;
+namespace Zintel\LaravelViewMaker\Console\Commands;
 
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\File;
 
-class MakeViewCommand extends Command
+class LaravelMakeViewCommand extends Command
 {
     protected $signature = 'make:view {name} {--all} {--i} {--sh} {--u} {--e}';
     protected $description = 'Generate view files for a given section with optional flags for individual files.';

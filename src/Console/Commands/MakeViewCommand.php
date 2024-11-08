@@ -1,13 +1,12 @@
 <?php
-
 namespace Zintel\LaravelViewMaker\Console\Commands;
 
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\File;
 
-class LaravelMakeView extends Command
+class MakeViewCommand extends Command
 {
-    protected $signature = 'make:view {name} {--all} {--i} {--sh} {--u} {--e}';
+    protected $signature = 'make:view {name} {--all} {--i} {--sh} {--e}';
     protected $description = 'Generate view files for a given section with optional flags for individual files.';
 
     public function handle()
@@ -29,9 +28,6 @@ class LaravelMakeView extends Command
             $this->createFile($viewDirectory, 'edit');
         }
 
-        if ($this->option('all') || $this->option('u')) {
-            $this->createFile($viewDirectory, 'update');
-        }
 
         if ($this->option('all') || $this->option('sh')) {
             $this->createFile($viewDirectory, 'show');

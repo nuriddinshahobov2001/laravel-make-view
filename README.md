@@ -1,4 +1,4 @@
-# A MVCS pattern create a service command for Laravel
+# This package will help you create a view (blade)
 
 # Install
 ```bash

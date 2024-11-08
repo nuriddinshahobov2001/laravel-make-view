@@ -1,12 +1,12 @@
 <?php
 
-namespace Zintel\LaravelService\Providers;
+namespace Zintel\LaravelViewMaker\Providers;
 
 
-use YourNamespace\Commands\MakeViewCommand;
-use Zintel\LaravelViewMaker\Console\Commands\MakeServiceCommand;
+use Illuminate\Support\ServiceProvider;
+use Zintel\LaravelViewMaker\Console\Commands\MakeViewCommand;
 
-class MakeServiceCommandProvider extends ServiceProvider
+class ViewGeneratorCommandProvider extends ServiceProvider
 {
     /**
      * Register services.

@@ -1,56 +1,55 @@
 <?php
 
-namespace YourNamespace\Commands;
+namespace Zintel\LaravelService\Console\Commands;
 
 use Illuminate\Console\Command;
-use Illuminate\Filesystem\Filesystem;
+use Illuminate\Support\Facades\File;
 
 class MakeViewCommand extends Command
 {
     protected $signature = 'make:view {name} {--all} {--i} {--sh} {--u} {--e}';
-    protected $description = 'Generate view files for a given section';
-
-    protected Filesystem $files;
-
-    public function __construct(Filesystem $files)
-    {
-        parent::__construct();
-        $this->files = $files;
-    }
+    protected $description = 'Generate view files for a given section with optional flags for individual files.';
 
     public function handle()
     {
         $name = $this->argument('name');
-        $path = resource_path("views/{$name}");
+        $viewDirectory = resource_path('views/' . $name);
 
-        // Создаём директорию, если её нет
-        if (!$this->files->isDirectory($path)) {
-            $this->files->makeDirectory($path, 0755, true);
+        // Создаем директорию для представлений, если ее нет
+        if (!File::isDirectory($viewDirectory)) {
+            File::makeDirectory($viewDirectory, 0755, true);
         }
 
-        // Проверяем опции и создаём нужные файлы
+        // Генерируем файлы в зависимости от флагов
         if ($this->option('all') || $this->option('i')) {
-            $this->createFile("{$path}/index.blade.php");
+            $this->createFile($viewDirectory, 'index');
         }
 
         if ($this->option('all') || $this->option('e')) {
-            $this->createFile("{$path}/edit.blade.php");
+            $this->createFile($viewDirectory, 'edit');
         }
 
         if ($this->option('all') || $this->option('u')) {
-            $this->createFile("{$path}/update.blade.php");
+            $this->createFile($viewDirectory, 'update');
         }
 
         if ($this->option('all') || $this->option('sh')) {
-            $this->createFile("{$path}/show.blade.php");
+            $this->createFile($viewDirectory, 'show');
         }
 
         $this->info('View files created successfully!');
     }
 
-    protected function createFile($path)
+    protected function createFile($directory, $viewName)
     {
-        $stub = ""; // Можешь добавить сюда содержимое шаблона по умолчанию
-        $this->files->put($path, $stub);
+        $filePath = $directory . DIRECTORY_SEPARATOR . "{$viewName}.blade.php";
+
+        if (!File::exists($filePath)) {
+            $content = "<!-- {$viewName} view content -->"; // Контент шаблона по умолчанию
+            File::put($filePath, $content);
+            $this->info("Created {$viewName}.blade.php");
+        } else {
+            $this->warn("{$viewName}.blade.php already exists.");
+        }
     }
 }

@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Artisan;
 
 class MakeViewCommand extends Command
 {
-    protected $signature = 'make:view {name} {--all} {--i} {--sh} {--e}';
+    protected $signature = 'make:view {name} {--all} {--i} {--sh} {--e} {--cmr}';
     protected $description = 'Generate view files for a given section with optional flags for individual files.';
 
     public function handle()
@@ -33,11 +33,24 @@ class MakeViewCommand extends Command
             $this->createFile($viewDirectory, 'show');
         }
 
-        // Создание контроллера, модели с миграцией и запросов, если указаны флаги
-        if ($this->option('all') || $this->option('i') || $this->option('e') || $this->option('sh')) {
-            $this->createControllerAndModel($name);
-            $this->updateControllerMethods($name);
+        $string = $this->option('cmr');
+        if (strpos($string, 'c') !== false) {
+            $this->createController($name);
         }
+
+        if (strpos($string, 'm') !== false) {
+            $this->createModel($name);
+        }
+
+        if (strpos($string, 'r') !== false) {
+            $this->createRequest($name);
+        }
+
+//        // Создание контроллера, модели с миграцией и запросов, если указаны флаги
+//        if ($this->option('all') || $this->option('i') || $this->option('e') || $this->option('sh')) {
+//            $this->createControllerAndModel($name);
+//            $this->updateControllerMethods($name);
+//        }
 
         $this->info('View files, controller, model, migration, and requests created successfully!');
     }
@@ -55,8 +68,8 @@ class MakeViewCommand extends Command
         }
     }
 
-    protected function createControllerAndModel($name)
-    {
+
+    protected function createController($name){
         // Путь для контроллера с динамическим пространством имен
         $controllerPath = app_path('Http/Controllers/' . ucfirst($name) . '/' . ucfirst($name) . 'Controller.php');
         if (!File::exists($controllerPath)) {
@@ -68,6 +81,30 @@ class MakeViewCommand extends Command
         } else {
             $this->warn("Controller {$name}/{$name}Controller.php already exists.");
         }
+    }
+
+    protected function createModel($name){
+        // Создание модели в папке {Name}
+        $modelDirectory = app_path('Models/' . ucfirst($name));
+        $modelPath = $modelDirectory . '/' . ucfirst($name) . '.php';
+
+        if (!File::exists($modelPath)) {
+            // Создаем папку для модели, если ее нет
+            if (!File::exists($modelDirectory)) {
+                File::makeDirectory($modelDirectory, 0755, true);
+            }
+
+            Artisan::call('make:model', [
+                'name' => ucfirst($name) . '/' . ucfirst($name), // Указываем путь модели внутри папки
+                '--migration' => true, // Генерация миграции
+            ]);
+            $this->info("Created model: " . ucfirst($name) . " in folder {$name} with migration.");
+        } else {
+            $this->warn("Model " . ucfirst($name) . " already exists.");
+        }
+    }
+    protected function createRequest($name)
+    {
 
         // Создание запроса для store
         $storeRequestPath = app_path('Http/Requests/' . ucfirst($name)  . ucfirst($name) . 'Request.php');
@@ -91,24 +128,7 @@ class MakeViewCommand extends Command
             $this->warn("Request Update{$name}Request.php already exists.");
         }
 
-        // Создание модели в папке {Name}
-        $modelDirectory = app_path('Models/' . ucfirst($name));
-        $modelPath = $modelDirectory . '/' . ucfirst($name) . '.php';
-
-        if (!File::exists($modelPath)) {
-            // Создаем папку для модели, если ее нет
-            if (!File::exists($modelDirectory)) {
-                File::makeDirectory($modelDirectory, 0755, true);
-            }
-
-            Artisan::call('make:model', [
-                'name' => ucfirst($name) . '/' . ucfirst($name), // Указываем путь модели внутри папки
-                '--migration' => true, // Генерация миграции
-            ]);
-            $this->info("Created model: " . ucfirst($name) . " in folder {$name} with migration.");
-        } else {
-            $this->warn("Model " . ucfirst($name) . " already exists.");
-        }
+        $this->updateControllerMethods($name);
     }
 
 

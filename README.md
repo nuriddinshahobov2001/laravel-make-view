@@ -9,24 +9,26 @@ composer require zintel/laravel-make-view
 <?php
 // config/app.php
 
-'providers' => ServiceProvider::defaultProviders()->merge([
-        //...
+'providers' = [
+        //...  
+        Zintel\LaravelViewMaker\LaravelViewMakerServiceProvider::class,
         
-        \Zintel\LaravelViewMaker\Providers\ViewGeneratorServiceProvider::class,
-        
-    ])->toArray(),
+    ],
 ```
 
 ### Usage
 ```bash
-$ php artisan make:view forder_name (crearet file)
+$ php artisan make:view admin --all --cmr
 
 --all - (index.blade.php, show.blade.php, edit.blade.php)
 --i   - (index.blade.php)
 --sh  - (show.blade.php)
 --e   - (edit.blade.php)
+--c   - (create controller)
+--m   - (create model)
+--r   - (create request)
 ```
 ### Example
 ```bash
-$ php artisan make:view  admin --all 
+$ php artisan make:view  admin --all --cmr
 ```

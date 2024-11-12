@@ -60,7 +60,23 @@ class MakeViewCommand extends Command
         $filePath = $directory . DIRECTORY_SEPARATOR . "{$viewName}.blade.php";
 
         if (!File::exists($filePath)) {
-            $content = "<!-- {$viewName} view content -->"; // Контент шаблона по умолчанию
+            $content = <<<HTML
+                <!-- {$viewName} view content Powered by Nuriddin Shahobov-->
+                
+                @extends('layouts.app')
+                
+                @section('title')
+                @endsection
+                
+                @section('css-links')
+                @endsection
+                
+                @section('main')
+                @endsection
+                
+                @section('js-links')
+                @endsection
+HTML;
             File::put($filePath, $content);
             $this->info("Created {$viewName}.blade.php");
         } else {

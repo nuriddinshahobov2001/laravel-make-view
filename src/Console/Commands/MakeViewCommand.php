@@ -77,21 +77,21 @@ class MakeViewCommand extends Command
     protected function getViewTemplate($viewName)
     {
         return <<<HTML
-            <!-- {$viewName} view content Powered by Nuriddin Shahobov -->
-            
-            @extends('layouts.app')
-            
-            @section('title')
-            @endsection
-            
-            @section('css-links')
-            @endsection
-            
-            @section('main')
-            @endsection
-            
-            @section('js-links')
-            @endsection
+<!-- {$viewName} view content Powered by Nuriddin Shahobov -->
+
+@extends('layouts.app')
+
+@section('title')
+@endsection
+
+@section('css-links')
+@endsection
+
+@section('main')
+@endsection
+
+@section('js-links')
+@endsection
 HTML;
     }
 
@@ -151,7 +151,7 @@ HTML;
 
         if (!File::exists($modelPath)) {
             Artisan::call('make:model', [
-                'name' => "Models/{$name}/{$name}",
+                'name' => "Models/{$name}/{$name}Model",
                 '--migration' => true,
             ]);
             $this->info("Created model: {$name}");

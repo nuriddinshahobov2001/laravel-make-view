@@ -18,7 +18,7 @@ composer require zintel/laravel-make-view
 
 ### Usage
 ```bash
-$ php artisan make:view admin --all --cmr
+$ php artisan make:view admin --all --o=
 
 --all - (index.blade.php, show.blade.php, edit.blade.php)
 --i   - (index.blade.php)

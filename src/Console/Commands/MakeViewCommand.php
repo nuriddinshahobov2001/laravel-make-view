@@ -7,206 +7,180 @@ use Illuminate\Support\Facades\Artisan;
 
 class MakeViewCommand extends Command
 {
-    protected $signature = 'make:view {name} {--all} {--i} {--sh} {--e} {--cmr}';
-    protected $description = 'Generate view files for a given section with optional flags for individual files.';
+    protected $signature = 'make:view {name} {--all} {--i} {--sh} {--e} {--o=}';
+    protected $description = 'Generate view files, controller, model, and requests for a given section.';
 
     public function handle()
     {
-        $name = $this->argument('name');
-        $viewDirectory = resource_path('views/' . $name);
+        $name = ucfirst($this->argument('name'));
+        $viewDirectory = resource_path("views/{$name}");
 
         // Создаем директорию для представлений, если ее нет
-        if (!File::isDirectory($viewDirectory)) {
-            File::makeDirectory($viewDirectory, 0755, true);
-        }
+        $this->createDirectory($viewDirectory);
 
-        // Генерируем файлы в зависимости от флагов
-        if ($this->option('all') || $this->option('i')) {
-            $this->createFile($viewDirectory, 'index');
-        }
+        // Генерация файлов представлений
+        $this->generateViews($viewDirectory);
 
-        if ($this->option('all') || $this->option('e')) {
-            $this->createFile($viewDirectory, 'edit');
-        }
+        // Генерация контроллера, модели и запросов
+        $this->processCMR($name);
 
-        if ($this->option('all') || $this->option('sh')) {
-            $this->createFile($viewDirectory, 'show');
-        }
-
-        $string = $this->option('cmr');
-        if (strpos($string, 'c') !== false) {
-            $this->createController($name);
-        }
-
-        if (strpos($string, 'm') !== false) {
-            $this->createModel($name);
-        }
-
-        if (strpos($string, 'r') !== false) {
-            $this->createRequest($name);
-        }
-
-//        // Создание контроллера, модели с миграцией и запросов, если указаны флаги
-//        if ($this->option('all') || $this->option('i') || $this->option('e') || $this->option('sh')) {
-//            $this->createControllerAndModel($name);
-//            $this->updateControllerMethods($name);
-//        }
-
-        $this->info('View files, controller, model, migration, and requests created successfully!');
     }
 
-    protected function createFile($directory, $viewName)
+    /**
+     * Создает директорию, если она не существует.
+     */
+    protected function createDirectory($path)
+    {
+        if (!File::isDirectory($path)) {
+            File::makeDirectory(strtolower($path), 0755, true);
+            $this->info("Directory created: {$path}");
+        }
+    }
+
+    /**
+     * Генерация файлов представлений.
+     */
+    protected function generateViews($viewDirectory)
+    {
+        $views = [
+            'index' => $this->option('all') || $this->option('i'),
+            'edit' => $this->option('all') || $this->option('e'),
+            'show' => $this->option('all') || $this->option('sh'),
+        ];
+
+        foreach ($views as $viewName => $shouldCreate) {
+            if ($shouldCreate) {
+                $this->createViewFile($viewDirectory, $viewName);
+            }
+        }
+    }
+
+    /**
+     * Создает файл представления, если он не существует.
+     */
+    protected function createViewFile($directory, $viewName)
     {
         $filePath = $directory . DIRECTORY_SEPARATOR . "{$viewName}.blade.php";
 
         if (!File::exists($filePath)) {
-            $content = <<<HTML
-                <!-- {$viewName} view content Powered by Nuriddin Shahobov-->
-                
-                @extends('layouts.app')
-                
-                @section('title')
-                @endsection
-                
-                @section('css-links')
-                @endsection
-                
-                @section('main')
-                @endsection
-                
-                @section('js-links')
-                @endsection
-HTML;
+            $content = $this->getViewTemplate($viewName);
             File::put($filePath, $content);
-            $this->info("Created {$viewName}.blade.php");
+            $this->info("Created view: {$viewName}.blade.php");
         } else {
-            $this->warn("{$viewName}.blade.php already exists.");
+            $this->warn("View already exists: {$viewName}.blade.php");
         }
-    }
-
-
-    protected function createController($name){
-        // Путь для контроллера с динамическим пространством имен
-        $controllerPath = app_path('Http/Controllers/' . ucfirst($name) . '/' . ucfirst($name) . 'Controller.php');
-        if (!File::exists($controllerPath)) {
-            Artisan::call('make:controller', [
-                'name' =>  ucfirst($name) . '/' . ucfirst($name) . 'Controller',
-                '--resource' => true, // Создаем ресурсный контроллер
-            ]);
-            $this->info("Created controller: {$name}/{$name}Controller.php");
-        } else {
-            $this->warn("Controller {$name}/{$name}Controller.php already exists.");
-        }
-    }
-
-    protected function createModel($name){
-        // Создание модели в папке {Name}
-        $modelDirectory = app_path('Models/' . ucfirst($name));
-        $modelPath = $modelDirectory . '/' . ucfirst($name) . '.php';
-
-        if (!File::exists($modelPath)) {
-            // Создаем папку для модели, если ее нет
-            if (!File::exists($modelDirectory)) {
-                File::makeDirectory($modelDirectory, 0755, true);
-            }
-
-            Artisan::call('make:model', [
-                'name' => ucfirst($name) . '/' . ucfirst($name), // Указываем путь модели внутри папки
-                '--migration' => true, // Генерация миграции
-            ]);
-            $this->info("Created model: " . ucfirst($name) . " in folder {$name} with migration.");
-        } else {
-            $this->warn("Model " . ucfirst($name) . " already exists.");
-        }
-    }
-    protected function createRequest($name)
-    {
-
-        // Создание запроса для store
-        $storeRequestPath = app_path('Http/Requests/' . ucfirst($name)  . ucfirst($name) . 'Request.php');
-        if (!File::exists($storeRequestPath)) {
-            Artisan::call('make:request', [
-                'name' => ucfirst($name) . '/Store' . ucfirst($name) . 'Request',
-            ]);
-            $this->info("Created request: Store{$name}Request.php");
-        } else {
-            $this->warn("Request Store{$name}Request.php already exists.");
-        }
-
-        // Создание запроса для update
-        $updateRequestPath = app_path('Http/Requests/' . ucfirst($name) . '/Update' . ucfirst($name) . 'Request.php');
-        if (!File::exists($updateRequestPath)) {
-            Artisan::call('make:request', [
-                'name' => ucfirst($name) . '/Update' . ucfirst($name) . 'Request',
-            ]);
-            $this->info("Created request: Update{$name}Request.php");
-        } else {
-            $this->warn("Request Update{$name}Request.php already exists.");
-        }
-
-        $this->updateControllerMethods($name);
-    }
-
-
-    protected function updateControllerMethods($name)
-    {
-        // Путь к контроллеру
-        $controllerPath = app_path('Http/Controllers/' . ucfirst($name) . '/' . ucfirst($name) . 'Controller.php');
-
-        if (!File::exists($controllerPath)) {
-            $this->error("Controller {$name}/{$name}Controller.php not found.");
-            return;
-        }
-
-        // Загружаем содержимое контроллера
-        $controllerContent = File::get($controllerPath);
-
-        // Классы запросов
-        $storeRequestClass = 'Store' . ucfirst($name) . 'Request';
-        $updateRequestClass = 'Update' . ucfirst($name) . 'Request';
-
-        // Регулярные выражения для поиска методов
-        $storePattern = '/public\s+function\s+store\s?\((.*?Request.*?)\)/';
-        $updatePattern = '/public\s+function\s+update\s?\((.*?Request.*?)\)/';
-
-        // Обновляем метод store
-        $controllerContent = $this->replaceRequestInMethod(
-            $controllerContent,
-            $storePattern,
-            'store',
-            $storeRequestClass
-        );
-
-        // Обновляем метод update
-        $controllerContent = $this->replaceRequestInMethod(
-            $controllerContent,
-            $updatePattern,
-            'update',
-            $updateRequestClass
-        );
-
-        // Сохраняем обновленный контроллер
-        File::put($controllerPath, $controllerContent);
-        $this->info('Controller methods updated successfully.');
     }
 
     /**
-     * Метод для замены типов Request в контроллере
+     * Возвращает шаблон для представления.
      */
-    protected function replaceRequestInMethod($content, $pattern, $methodName, $requestClass)
+    protected function getViewTemplate($viewName)
     {
-        if (preg_match($pattern, $content)) {
-            // Заменяем Request на соответствующий запрос
-            $content = preg_replace_callback($pattern, function ($matches) use ($requestClass) {
-                return str_replace($matches[1], "{$requestClass} \$request", $matches[0]);
-            }, $content);
+        return <<<HTML
+            <!-- {$viewName} view content Powered by Nuriddin Shahobov -->
+            
+            @extends('layouts.app')
+            
+            @section('title')
+            @endsection
+            
+            @section('css-links')
+            @endsection
+            
+            @section('main')
+            @endsection
+            
+            @section('js-links')
+            @endsection
+HTML;
+    }
 
-            $this->info("Updated {$methodName} method to use {$requestClass}");
-        } else {
-            $this->warn("Method {$methodName} not found or already updated.");
-        }
+    /**
+     * Обрабатывает флаг --cmr для генерации контроллера, модели и запросов.
+     */
+   protected function processCMR($name)
+{
+    $cmrOptions = $this->option('o');
 
-        return $content;
+    if (!$cmrOptions) {
+        return;
+    }
+
+    // Разбиваем строку на массив символов
+    $options = str_split($cmrOptions);
+
+    // Уникально обрабатываем каждый флаг
+    if (in_array('c', $options)) {
+        $this->createController($name);
+    }
+
+    if (in_array('m', $options)) {
+        $this->createModel($name);
+    }
+
+    if (in_array('r', $options)) {
+        $this->createRequest($name);
     }
 }
 
+
+    /**
+     * Создает контроллер.
+     */
+    protected function createController($name)
+    {
+        $controllerPath = app_path("Http/Controllers/{$name}/{$name}Controller.php");
+
+        if (!File::exists($controllerPath)) {
+            Artisan::call('make:controller', [
+                'name' => "{$name}/{$name}Controller",
+                '--resource' => true,
+            ]);
+            $this->info("Created controller: {$name}Controller");
+        } else {
+            $this->warn("Controller already exists: {$name}Controller");
+        }
+    }
+
+    /**
+     * Создает модель с миграцией.
+     */
+    protected function createModel($name)
+    {
+        $modelPath = app_path("Models/{$name}/{$name}.php");
+
+        if (!File::exists($modelPath)) {
+            Artisan::call('make:model', [
+                'name' => "Models/{$name}/{$name}",
+                '--migration' => true,
+            ]);
+            $this->info("Created model: {$name}");
+        } else {
+            $this->warn("Model already exists: {$name}");
+        }
+    }
+
+    /**
+     * Создает запросы Store и Update.
+     */
+    protected function createRequest($name)
+    {
+        $requests = [
+            'Store' => "Store{$name}Request",
+            'Update' => "Update{$name}Request",
+        ];
+
+        foreach ($requests as $type => $className) {
+            $requestPath = app_path("Http/Requests/{$name}/{$className}.php");
+
+            if (!File::exists($requestPath)) {
+                Artisan::call('make:request', [
+                    'name' => "{$name}/{$className}",
+                ]);
+                $this->info("Created request: {$className}");
+            } else {
+                $this->warn("Request already exists: {$className}");
+            }
+        }
+    }
+}
